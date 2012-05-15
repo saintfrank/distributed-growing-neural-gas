@@ -1,0 +1,7 @@
+The plot process can be described like that:
+
+- Input data described in the data data.dat as exampled
+- The plotting script "plotter" have to be runned with the instruction ">gnuplot plotter"
+- an output file Graphic.png is created or overwritten in the current directory 
+
+DATA -> SCRIPT ->OUUTPUTFILE

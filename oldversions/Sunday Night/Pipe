@@ -1,0 +1,141 @@
+Messages
+
+N: Welcome to the DGNG pipe :)
+
+N: it took longer than expected (as always...)
+below some questions. and i uploaded the node.erl (_NOT_TESTED), so you can have a look. tomorrow i'm trying if it works as aspected
+please answer the questions below as soon as possible (so that i can finish node.erl, and test the "final" version)
+i did not update the pseudo code, hope it's ok
+
+
+N: hej, do we want to "store" parameters like maxAge for Edges in the nodes, or do we give it every time, so that it can be modified during runtime? i don't know if there is a reason to modify it at runtime?
+
+F: i think max ages is static...mm
+
+N: do we have to send a confirmation after each "function call" from outside?
+
+F: what kind of funcion call do you mean, "start(...)" of for every read pattern ?  (erlang is verified and safe, i think in general we should be "optimistic" oriented)
+
+N: is there a way to handle n-tuples, when n is not known?
+is there a way to handle them, when n is known? (i found only hardcoded examples, no parametric ones)
+i implemented the position now as list (it's a functional language, so there will be lists everywhere...)
+lists ok?
+
+F: in effect lists is ok, specially cause we want to do it multidimentional 
+
+N: i cannot see 3 types of managers, only 2:
++ finding nearest and 2nd nearest
++ updating error OR create new node (includes updating error)
+what is the 3rd one?
+
+F: I thought Neigbour lists updater
+
+N: the age is only increased in the neighborhood of one node, so he can do it
+(did you mean this one?)
+
+
+
+N: i dont understand: if i hink i should get an empty list "[]", i get an "ok" instead. why?
+
+F: often ok is returned by the kernel as success of a builtin funcion call , do you call any extern funtion ?
+
+N: don't think so. but i use utility function to start recursions with predefined parameters, maybe this is considered external function.
+
+node.erl is up and running (well, at least it is uploaded and can be run without errors)
+
+
+N: i think, we should clean up the pipe :)
+no, what i really think, is that we don't need the metamanager. just include it in the MaxFinder/Error Updater.
+
+F: I agree. Ithink it should be all done from the only manager that has a winner-knowlege, so Error Updater. He should control the tree.
+I wuold prefer to keep Max_finder small and fast. What do you think ?
+
+N: hm, i thought Max_Finder means the same as Error Updater.
+and exactly this one should be a tree and create a parallel tree of Min_Finder aka DistanceComputer
+
+this way round, because the Max_Finder is only backpropagating every lambda th iteration, and so is not so busy as the MinFinder who is backpropagating his min every iteration
+(right?)
+
+pseudo code is updated, now i'm thinking about addNode and its parameters
+
+F: FUck...i think i'm mismatching with the names...i mean Max when i think about election, but that's not max, actial is MIn .
+so if you re-read what I sead i meand winner_eletion to be small and fast. I'm changing my code now, i'll call it winner every time
+
+perfect, so we were talking about the same thing :)
+
+F: The code "runs" bot still i have to consider the subtrees, now i'm calculating the winner just for the nodes, i'll finish tomorrow.
+we should to write a test  where you send messages and check if is behaving good ..
+
+
+F: (1.19 h) Good NIght darling =)
+
+N: in the treegrowing is the pseudocode, how i imagine the treegrowing, now updated with the parallel trees
+
+N: we need to think about finishing criterias. one could be the max error we search, when we add a new node (if max number of nodes is reached, we could do this in spite of)
+like this we don'T need to search for something else.
+
+F: GoodMorning Sunshine. This monrning i got some practice of how file handling work in eralng. We can use a file where every node can write in the same time and rewrite it for every iteration from the beginning and have a real time schema. I'm providing a formatted reading.
+
+N:hej hej. i'm your opinion now, the input generator should produce a file, we don't need *infinite* sample sets. can you post/explain me the structure of the inputfile?
+
+F: I thoug about a line per pattern, and a coln per dimension, so in 2-d two colons with x and y values.
+
+F: NIls, could you send me the algorithm for the groth of Norrland's ?
+sorry, for not checking. i'll do it as fast as i can...
+
+hej francesco, how do i convert from float to integer?
+
+F: you should try trunc () or floor ()
+
+Trunc just truncates, floor does this :
+
+floor(V) when V >= 0 -> trunc(V);
+> >> floor(V) -> trunc(V - trunc(V) + 1) + trunc(V) - 1.
+
+thank, found it too. took me long to realize, that div takes only integer argument, and that some variables are converted be erlang from int to float.
+
+
+you were right, erlang is nice in compile time, but difficult to "understand" in runtime
+the algorithm is uploaded
+
+F: Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !! 
+
+=)
+
+N: ok... something i can do? should the input files look like this
+
+23.3 4
+2 4.5
+
+F: so space between dimensions and newline between samples
+this morning it remained to figure out how to format the read line, but i think is better if you could leave a TAB between the dimensions
+
+F: very stupid question, but if we cecrease the error of everyone of a constant, why don't do it automatically on the nodes ? We will just add it back to the winner and runner....i feel stupid, maiby is late
+
+N:damn, there where 2 pipe files.... i wrote this yesterday
+if u want input, rectangle, circle and uni can be produced
+type for example
+input_gen:file(10000,10,uni,"uni.dat").
+
+N: hilodensity and cluster work now. bad coding, if you want to change the parameter, you have to do it in the code, but only in the file() function.
+tomorrow (sunday) i'm going to pierre to learn for AI, can i come to your place before?
+
+F: Yes of course !! Pass here
+
+Nils
+
+and, yes of course, every node should do it itself. i wrote in the pseudo code askForMax (which is askforMaxError) should implement decreaseError, but i forgot to write it in the function. if you ask a node for the error, you should send the ALPHA or D and get back the already decreased error.
+but i think we have to propagate a signal, because we need to do it after the error is added to the winner (or at least we need to know, if we do it before or after). right?
+
+----------------------------------------------
+
+What to do
+
++ Decide how to split -> Manager(F), Node (N, done)
+
++ take a look at gnuplot (F) v
++ write file in erlang (F) v
+
++ extract benchmarks, exampleData from DemoGNG (N)
+
+

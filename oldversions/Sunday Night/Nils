@@ -1,0 +1,8 @@
+check code with dialyser
+decrease error function überarbeiten in node
+give the nodes the engine_ID
+removeNode should inform manager and engine_ID
+
+when new node is added, check first if the ILostNodeList has err_managers, then calculate with formula
+
+check in engine if last sample is read and start again.

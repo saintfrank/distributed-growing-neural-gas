@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<language name="Erlang" version="0.1" kateversion="2.5.6" section="Sources" casesensitive="true" mimetype="text/x-erlang" extensions="*.erl;*.hrl;.erlang;*.app;Emakefile;" author="William FINK (william.fink@gmail.com)" license="LGPL">
+  <highlighting>
+    <list name="keywords">
+      <item> case </item>
+      <item> after </item>
+      <item> and </item>
+      <item> andalso </item>
+      <item> band </item>
+      <item> begin </item>
+      <item> bnot </item>
+      <item> bor </item>
+      <item> bsl </item>
+      <item> bsr </item>
+      <item> bxor </item>
+      <item> case </item>
+      <item> catch </item>
+      <item> cond </item>
+      <item> div </item>
+      <item> if </item>
+      <item> let </item>
+      <item> not </item>
+      <item> of </item>
+      <item> or </item>
+      <item> orelse </item>
+      <item> query </item>
+      <item> receive </item>
+      <item> rem </item>
+      <item> try </item>
+      <item> xor </item>
+      
+      <item> self </item>
+    </list>
+
+    <list name="guardBIFs">
+      <item> is_atom </item>
+      <item> is_binary </item>
+      <item> is_constant </item>
+      <item> is_float </item>
+      <item> is_function </item>
+      <item> is_function </item>
+      <item> is_integer </item>
+      <item> is_list </item>
+      <item> is_number </item>
+      <item> is_pid </item>
+      <item> is_port </item>
+      <item> is_reference </item>
+      <item> is_tuple </item>
+      <item> is_record </item>
+      <item> is_record </item>
+      
+      <item> abs </item>
+      <item> element </item>
+      <item> float </item>
+      <item> hd </item>
+      <item> length </item>
+      <item> node </item>
+      <item> node </item>
+      <item> round </item>
+      <item> self </item>
+      <item> size </item>
+      <item> tl </item>
+      <item> trunc </item>
+    </list>
+    
+    <list name="when">
+      <item> when </item>
+    </list>
+    
+    <list name="fun">
+      <item> fun </item>
+    </list>
+
+    <list name="end">
+      <item> end </item>
+    </list>
+
+    <contexts>
+      <context attribute="Normal Text" lineEndContext="#stay" name="Normal Text" >
+        <!-- Common -->
+        <keyword attribute="Keyword" context="#stay" String="keywords" />
+        <keyword attribute="Keyword" context="Normal Text" String="fun" />
+        <keyword attribute="Keyword" context="#pop" String="end" />
+        <DetectChar attribute="Keyword" context="#stay"  char="!" />
+        <DetectChar attribute="Attributes" context="Attributes"  char="-" column="0" />
+        <DetectChar attribute="Comment" context="Comment" char="%"/>
+        <RegExpr attribute="Function" context="#stay" String="^[a-z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Macros" context="#stay" String="\?[A-Z0-9_]+" />
+        <RegExpr attribute="Variables" context="#stay" String="[A-Z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Type" context="#stay" String="#[a-z][a-zA-Z0-9_]*(\.[a-z][a-zA-Z0-9_]*)?" />
+        <RegExpr attribute="BaseN" context="#stay" String="[0-9]+#[0-9a-zA-Z]+" />
+        <RegExpr attribute="Float" context="#stay" String="[0-9]+\.[0-9]+(e-?[0-9]+)?" />
+        <Int attribute="Integer" context="#stay" />
+        <DetectChar attribute="String" context="String" char="&quot;"/>
+        <Detect2Chars attribute="SpecialOps" context="#stay" char="-" char1="&gt;" />
+        <DetectChar attribute="Normal Text" context="Call" char="(" />
+        <DetectChar attribute="Normal Text" context="Struct" char="{" />
+        <DetectChar attribute="Normal Text" context="List" char="[" />
+        <Detect2Chars attribute="Normal Text" context="Binary" char="&lt;" char1="&lt;" />
+        <RegExpr attribute="Char" context="#stay" String="\$\\?." />
+        <keyword attribute="Keyword" context="Guard" String="when" />
+        <DetectChar attribute="Atom" context="Atom" char="'"/>
+        <RegExpr attribute="Atom" context="#stay" String="[a-zA-Z0-9_]+" />
+        
+        <!-- FIXME: indent -->
+        
+        <!-- Specific -->
+        <AnyChar attribute="SpecialOps" context="#stay" String=";.," />
+      </context>
+
+      <context attribute="Normal Text" lineEndContext="#stay" name="Guard" >
+        <!-- Common -->
+        <keyword attribute="Keyword" context="#stay" String="keywords" />
+        <keyword attribute="Keyword" context="Normal Text" String="fun" />
+        <keyword attribute="Keyword" context="#pop" String="end" />
+        <DetectChar attribute="Keyword" context="#stay"  char="!" />
+        <DetectChar attribute="Attributes" context="Attributes"  char="-" column="0" />
+        <DetectChar attribute="Comment" context="Comment" char="%"/>
+        <RegExpr attribute="Function" context="#stay" String="^[a-z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Macros" context="#stay" String="\?[A-Z0-9_]+" />
+        <RegExpr attribute="Variables" context="#stay" String="[A-Z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Type" context="#stay" String="#[a-z][a-zA-Z0-9_]*(\.[a-z][a-zA-Z0-9_]*)?" />
+        <RegExpr attribute="BaseN" context="#stay" String="[0-9]+#[0-9a-zA-Z]+" />
+        <RegExpr attribute="Float" context="#stay" String="[0-9]+\.[0-9]+(e-?[0-9]+)?" />
+        <Int attribute="Integer" context="#stay" />
+        <DetectChar attribute="String" context="String" char="&quot;"/>
+        <Detect2Chars attribute="SpecialOps" context="#pop" char="-" char1="&gt;" /> <!-- Special for guard expression -->
+        <DetectChar attribute="Normal Text" context="Call" char="(" />
+        <DetectChar attribute="Normal Text" context="Struct" char="{" />
+        <DetectChar attribute="Normal Text" context="List" char="[" />
+        <Detect2Chars attribute="Normal Text" context="Binary" char="&lt;" char1="&lt;" />
+        <RegExpr attribute="Char" context="#stay" String="\$\\?." />
+        <keyword attribute="Keyword" context="Guard" String="when" />
+        <DetectChar attribute="Atom" context="Atom" char="'"/>
+        <RegExpr attribute="Atom" context="#stay" String="[a-zA-Z0-9_]+" />
+        
+        <!-- Specific -->
+        <keyword attribute="Keyword" context="#stay" String="guardBIFs" />
+      </context>
+      
+      <context attribute="Normal Text" lineEndContext="#stay" name="Call" >
+        <!-- Common -->
+        <keyword attribute="Keyword" context="#stay" String="keywords" />
+        <keyword attribute="Keyword" context="Normal Text" String="fun" />
+        <keyword attribute="Keyword" context="#pop" String="end" />
+        <DetectChar attribute="Keyword" context="#stay"  char="!" />
+        <DetectChar attribute="Attributes" context="Attributes"  char="-" column="0" />
+        <DetectChar attribute="Comment" context="Comment" char="%"/>
+        <RegExpr attribute="Function" context="#stay" String="^[a-z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Macros" context="#stay" String="\?[A-Z0-9_]+" />
+        <RegExpr attribute="Variables" context="#stay" String="[A-Z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Type" context="#stay" String="#[a-z][a-zA-Z0-9_]*(\.[a-z][a-zA-Z0-9_]*)?" />
+        <RegExpr attribute="BaseN" context="#stay" String="[0-9]+#[0-9a-zA-Z]+" />
+        <RegExpr attribute="Float" context="#stay" String="[0-9]+\.[0-9]+(e-?[0-9]+)?" />
+        <Int attribute="Integer" context="#stay" />
+        <DetectChar attribute="String" context="String" char="&quot;" />
+        <DetectChar attribute="Normal Text" context="Call" char="(" />
+        <DetectChar attribute="Normal Text" context="Struct" char="{" />
+        <DetectChar attribute="Normal Text" context="List" char="[" />
+        <Detect2Chars attribute="Normal Text" context="Binary" char="&lt;" char1="&lt;" />
+        <RegExpr attribute="Char" context="#stay" String="\$\\?." />
+        <keyword attribute="Keyword" context="Guard" String="when" />
+        <DetectChar attribute="Atom" context="Atom" char="'"/>
+        <RegExpr attribute="Atom" context="#stay" String="[a-zA-Z0-9_]+" />
+        
+        <!-- Specific -->
+        <DetectChar attribute="Normal Text" context="#pop" char=")" />
+      </context>
+      
+      <context attribute="Normal Text" lineEndContext="#stay" name="Binary" >
+        <!-- Common -->
+        <keyword attribute="Keyword" context="#stay" String="keywords" />
+        <keyword attribute="Keyword" context="Normal Text" String="fun" />
+        <keyword attribute="Keyword" context="#pop" String="end" />
+        <DetectChar attribute="Keyword" context="#stay"  char="!" />
+        <DetectChar attribute="Attributes" context="Attributes"  char="-" column="0" />
+        <DetectChar attribute="Comment" context="Comment" char="%"/>
+        <RegExpr attribute="Function" context="#stay" String="^[a-z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Macros" context="#stay" String="\?[A-Z0-9_]+" />
+        <RegExpr attribute="Variables" context="#stay" String="[A-Z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Type" context="#stay" String="#[a-z][a-zA-Z0-9_]*(\.[a-z][a-zA-Z0-9_]*)?" />
+        <RegExpr attribute="BaseN" context="#stay" String="[0-9]+#[0-9a-zA-Z]+" />
+        <RegExpr attribute="Float" context="#stay" String="[0-9]+\.[0-9]+(e-?[0-9]+)?" />
+        <Int attribute="Integer" context="#stay" />
+        <DetectChar attribute="String" context="String" char="&quot;" />
+        <DetectChar attribute="Normal Text" context="Call" char="(" />
+        <DetectChar attribute="Normal Text" context="Struct" char="{" />
+        <DetectChar attribute="Normal Text" context="List" char="[" />
+        <Detect2Chars attribute="Normal Text" context="Binary" char="&lt;" char1="&lt;" />
+        <RegExpr attribute="Char" context="#stay" String="\$\\?." />
+        <keyword attribute="Keyword" context="Guard" String="when" />
+        <DetectChar attribute="Atom" context="Atom" char="'"/>
+        <RegExpr attribute="Atom" context="#stay" String="[a-zA-Z0-9_]+" />
+        
+        <!-- Specific -->
+        <Detect2Chars attribute="Normal Text" context="#pop" char="&gt;" char1="&gt;" />
+      </context>
+      
+      <context attribute="Normal Text" lineEndContext="#stay" name="Struct" >
+        <!-- Common -->
+        <keyword attribute="Keyword" context="#stay" String="keywords" />
+        <keyword attribute="Keyword" context="Normal Text" String="fun" />
+        <keyword attribute="Keyword" context="#pop" String="end" />
+        <DetectChar attribute="Keyword" context="#stay"  char="!" />
+        <DetectChar attribute="Attributes" context="Attributes"  char="-" column="0" />
+        <DetectChar attribute="Comment" context="Comment" char="%"/>
+        <RegExpr attribute="Function" context="#stay" String="^[a-z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Macros" context="#stay" String="\?[A-Z0-9_]+" />
+        <RegExpr attribute="Variables" context="#stay" String="[A-Z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Type" context="#stay" String="#[a-z][a-zA-Z0-9_]*(\.[a-z][a-zA-Z0-9_]*)?" />
+        <RegExpr attribute="BaseN" context="#stay" String="[0-9]+#[0-9a-zA-Z]+" />
+        <RegExpr attribute="Float" context="#stay" String="[0-9]+\.[0-9]+(e-?[0-9]+)?" />
+        <Int attribute="Integer" context="#stay" />
+        <DetectChar attribute="String" context="String" char="&quot;" />
+        <DetectChar attribute="Normal Text" context="Call" char="(" />
+        <DetectChar attribute="Normal Text" context="Struct" char="{" />
+        <DetectChar attribute="Normal Text" context="List" char="[" />
+        <Detect2Chars attribute="Normal Text" context="Binary" char="&lt;" char1="&lt;" />
+        <RegExpr attribute="Char" context="#stay" String="\$\\?." />
+        <keyword attribute="Keyword" context="Guard" String="when" />
+        <DetectChar attribute="Atom" context="Atom" char="'"/>
+        <RegExpr attribute="Atom" context="#stay" String="[a-zA-Z0-9_]+" />
+        
+        <!-- Specific -->
+        <DetectChar attribute="Normal Text" context="#pop" char="}" />
+      </context>
+      
+      <context attribute="Normal Text" lineEndContext="#stay" name="List" >
+        <!-- Common -->
+        <keyword attribute="Keyword" context="#stay" String="keywords" />
+        <keyword attribute="Keyword" context="Normal Text" String="fun" />
+        <keyword attribute="Keyword" context="#pop" String="end" />
+        <DetectChar attribute="Keyword" context="#stay"  char="!" />
+        <DetectChar attribute="Attributes" context="Attributes"  char="-" column="0" />
+        <DetectChar attribute="Comment" context="Comment" char="%"/>
+        <RegExpr attribute="Function" context="#stay" String="^[a-z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Macros" context="#stay" String="\?[A-Z0-9_]+" />
+        <RegExpr attribute="Variables" context="#stay" String="[A-Z][a-zA-Z0-9_]*" />
+        <RegExpr attribute="Type" context="#stay" String="#[a-z][a-zA-Z0-9_]*(\.[a-z][a-zA-Z0-9_]*)?" />
+        <RegExpr attribute="BaseN" context="#stay" String="[0-9]+#[0-9a-zA-Z]+" />
+        <RegExpr attribute="Float" context="#stay" String="[0-9]+\.[0-9]+(e-?[0-9]+)?" />
+        <Int attribute="Integer" context="#stay" />
+        <DetectChar attribute="String" context="String" char="&quot;" />
+        <DetectChar attribute="Normal Text" context="Call" char="(" />
+        <DetectChar attribute="Normal Text" context="Struct" char="{" />
+        <DetectChar attribute="Normal Text" context="List" char="[" />
+        <Detect2Chars attribute="Normal Text" context="Binary" char="&lt;" char1="&lt;" />
+        <RegExpr attribute="Char" context="#stay" String="\$\\?." />
+        <keyword attribute="Keyword" context="Guard" String="when" />
+        <DetectChar attribute="Atom" context="Atom" char="'"/>
+        <RegExpr attribute="Atom" context="#stay" String="[a-zA-Z0-9_]+" />
+        
+        <!-- Specific -->
+        <DetectChar attribute="Normal Text" context="#pop" char="]" />
+      </context>
+      
+      <!-- Comments -->
+      <context attribute="Comment" lineEndContext="#pop" name="Comment"/>
+      
+      <!-- Attributes -->
+      <context attribute="Attributes" lineEndContext="#pop" name="Attributes">
+        <DetectChar attribute="Comment" context="#pop" char="(" lookAhead="true"/>
+      </context>
+      
+      <!-- Strings -->
+      <context attribute="String" lineEndContext="#stay" name="String">
+        <Detect2Chars attribute="String" context="#stay" char="\" char1="&quot;"/>
+        <DetectChar attribute="String" context="#pop" char="&quot;"/>
+        <HlCStringChar attribute="EscapeSequence"/>
+        <RegExpr attribute="EscapeSequence" context="#stay" String="\\(u[\da-fA-F]{4}|U[\da-fA-F]{8}|&amp;[a-zA-Z]\w+;)" />
+      </context>
+      
+      <!-- Atoms -->
+      <context attribute="Atom" lineEndContext="#stay" name="Atom">
+        <Detect2Chars attribute="Atom" context="#stay" char="\" char1="'"/>
+        <DetectChar attribute="Atom" context="#pop" char="'"/>
+      </context>
+    </contexts>
+    <itemDatas>
+      <itemData name="Normal Text" defStyleNum="dsNormal"/>
+      <itemData name="Keyword" defStyleNum="dsKeyword"/>
+      <itemData name="Attributes" defStyleNum="dsOthers"/>
+      <itemData name="Macros" defStyleNum="dsOthers"/>
+      <itemData name="Function" defStyleNum="dsFunction"/>
+      <itemData name="Comment" defStyleNum="dsComment"/>
+      <itemData name="Variables" defStyleNum="dsDataType"/>
+      <itemData name="Integer" defStyleNum="dsDecVal"/>
+      <itemData name="String" defStyleNum="dsString"/>
+      <itemData name="Atom" defStyleNum="dsNormal"/>
+      <itemData name="SpecialOps" defStyleNum="dsRegionMarker"/>
+      <itemData name="Char" defStyleNum="dsChar"/>
+      <itemData name="Type" defStyleNum="dsOthers"/>
+      <itemData name="BaseN" defStyleNum="dsBaseN"/>
+      <itemData name="Float" defStyleNum="dsFloat"/>
+      <itemData name="EscapeSequence" defStyleNum="dsChar"/>
+    </itemDatas>
+  </highlighting>
+  <general>
+    <comments>
+      <comment name="singleLine" start="%"/>
+    </comments>
+    <keywords casesensitive="1"/>
+    <indentation mode="normal"/>
+  </general>
+</language>

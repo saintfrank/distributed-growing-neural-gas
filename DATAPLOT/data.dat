@@ -1,0 +1,12 @@
+# This is a data example of 2 dimensional data file
+# Every row represent a point (pattern), every column a coordinate.
+# X	Y
+1	11
+2	22
+3	33
+4	44
+5	55
+6	66
+7	77
+8	88
+9 	99

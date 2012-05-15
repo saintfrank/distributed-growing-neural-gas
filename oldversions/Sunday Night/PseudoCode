@@ -1,0 +1,248 @@
+Distributed GNG
+
+Objects
+	MainMethod	mainthread of the agorithm
+	Node	a node of the algorithm
+	MaxManager  updates the error
+				and every lamda th iteration searches for the max of error and insert a new node
+				keeps track, that the MinManager tree structure is the same as for this one
+	MinManager	searches for the minimal distance to the input and to do this, lets every node compute it
+	
+MainMethod
+	
+	(parameter)
+	alpha 	(factor to decrease the accErr of the neighbors of a new node, see 8.)
+	d 		(or d=1-beta; factor to decrease the accErr of all nodes, see 9. resp 8.)
+	move_k, move_n (greek e; fraction how much the winner (k) and its neighbirs(n) are moved towards the input)
+	n		dimension of the inputspace
+	maxAge	Edges older than this will be removed
+	maxNodes maximum number of nodes
+	lamda	every lamba iteration a new node is created if maxNodes is not reached 
+
+	(variables)
+	MaxManager max	MaxManagerPointer
+	MinManager min	MinManagerPointer
+	s1, s2			(of type [Distance, NodePointer])
+	q, f			NodePointer
+	countIteration	counts the number of iterations
+	countNodes		
+	
+	
+Algorithm
+
+0. 	Create max			(this has to create a MinManager)
+	min = max.min  
+	countIteration := 0
+	countNodes := 0
+	Create 2 nodes randomly in the inputspace
+		(take 2 samples?)
+	Add nodes to max, max.AddNode, countNodes += 2
+	Make the 2 nodes neighbors,2 times nodes .newEdge(otherNode)
+---------------	
+	
+1.	Take input I (random?)
+
+2. 	min.AskForMin(I)
+	s1 := min.s1?
+	s2 := min.s2?	
+	
+3.	s1.Node.AgeEdges(maxAge)	
+	
+4.	s1.Node.UpdateError(s1.Distance)	
+	//if Euclid without squareroot (see Node.ComputeDistance) then this without ^ 2
+
+5.	s1.Node.Move(I, move_k, move_n)	
+		
+6.	s1.Node.FreshNeighbor(s2.Node)
+	s2.Node.FreshNeighbor(s1.Node)	
+	
+7.	implemented in 3.
+
+8.	if(countIteration mod lamba == 0)
+		max.AskForMax  (this implements also DecreaseError or equivalent)
+		q := max.q?.Node 	
+		f := q.Node.maxNeighbor
+		f.removeEdge(q.Node)
+		q.removeEdge(f.Node)
+		Create Node r
+		max.AddNode(r)
+		countNodes++
+		max.AddNode(r)
+		for(i = 0;i<n;i++)
+			r.Position[i] = (q.Node.Position[i]+f.Position[i])/2	
+		q.Node.DecreaseError(alpha)
+		f.DecreaseError(alpha)
+		r.Error = q.Error
+		q.NewEdge(r)
+		f.NewEdge(r)
+	else
+		max.DecreaseError(d)	
+		
+9.	included in 8., see also Manager.AskForMax	
+	
+10.	if(endCondition)
+		end
+	else
+		countIteration++
+		goto 1.	
+	
+	
+Node
+	Param:
+	+ POSITION is a list of the positions in each dimension
+	+ EDGES is a list of pairs {NodePointer, age} 
+	+ ERROR is a real number
+	+ PARENT is a ManagerPointer
+
+	.newEdge(otherNode)	
+		set age=0
+		
+	.AgeEdges(maxAge)
+		forall(E element Edges)
+			E.Age++
+			if(E.Age>maxAge)
+				E.Node.removeEdge(this)
+				removeEdge(E)
+				
+	.UpdateError(s1.Distance²)	//check if Euclidean is used
+		Error += s1.Distance²	
+		
+	.Move(I, move_k, move_n)
+		forall(E element Edges)
+			E.Move(I, move_n)
+		Move(I, move_k)	
+		wait for responses	
+			
+	.Move(I, move)
+		for(i=0;i<n;i++)
+			Position[i] += move*(I[i] - Position[i])
+					
+	.FreshNeighbor(s2.Node)
+		forall(E element Edges)
+			if(E.Node == s2.Node)
+				E.Node.Edge = 0
+				break forall
+		E.NewEdge(s2.Node)
+		s2.Node.NewEdge(E)
+			
+	.maxNeighbor
+		tmp	of type [Error, NodePointer]
+		forall(E element Edges)
+			if(E.Node.Error > tmp.Error)
+				tmp.Node = E.Node
+				tmp.Error = E.Node.Error
+		return tmp.Node
+			
+	.removeEdge(Node)
+		remove Edge and self() if no edges left
+		
+	.DecreaseError(alpha)
+		Error *= alpha
+		
+	.ComputeDistance(I)	(Euclidean distance)
+		distance
+		for(i=0;i<n;i++)
+			distance += absolute Value( (I[i]-Position)² )		
+			//squareroot for Euclidean not needed, as strict monotone 
+		return distance
+	
+	
+MaxManager
+	
+	.min			MinManagerPointer	
+	 q?				(of type [NodePointer,Error], s1? could be reused)
+	.maxParent		ManagerPointer
+	.maxChildren		List of type [depth, ManagerPointer]
+	.Nodes			nodes connected to this MaxManagerunit, list of pointers		
+	.depth	= 1		counts the depth in the MaxManager-tree (and thus also MinManager-tree)
+
+
+	.newManager()
+	
+	.newManager(maxParent)
+	
+
+					
+	.AskForMax	(better both together?)
+		q? := [0, null]
+		forall(C element maxChildren)
+			C.AskForMax
+		forall(N element Nodes)
+			if(N.Error > q?.Error)
+				q?.Node = N
+				q?.Error = N.Error
+		wait for response of all C element maxChild
+		(can be handled as soon as response arrives, even during previous forall)
+		if(C.q?.Error > q?.Error)
+			q?.Error = C.q?.Error
+			q?.Node = C.q?.Node		
+			
+	.DecreaseError(d)
+		forall(C element maxChildren)
+			C.DecreaseError(d)
+		forall(N element Nodes)
+			N.DecreaseError(d)
+		wait for response?
+	
+	
+	.AddNode(r)
+		to think of
+		something like
+		**************
+		if(NumberOfNodes > someParameterDependingOnTimeTillResponse*Depth)
+			if(NumberOfManagerChildren < someOtherParameterDependingOnTimeTillResponse*Depth)
+				Create a certain number
+				
+				
+				newManager(this) = Create new Manager
+				Add to maxChildren [newManager,0]
+				newManager.AddNode(r)
+				fehlt noch was
+			else
+				choose maxChild C with lowest depth
+				C.AddNode(r)
+		else
+			Add node r to Nodes
+			
+		der Baum soll oben mehr haben, und nach möglichkeit maximal 1 max mit nur einem knoten
+		oder einfach immer vorhandene nodes an neue max elemente weiter geben und neu sammeln	
+
+-----------------------------------------
+			
+MinManager
+
+	.parent    (father's PID)
+	.depth     (depth in the tree)
+	.
+	.AskForMin(I)
+		Temp_win := [0, null] the temporary winner 
+		Temp_run := [0, null] the temporary runner
+		forall(C element maxChildren)
+			C.AskForMin(I)
+		forall(Nod element Nodes)
+			tmp = Nod.getinfo(I) (returns [Node's PID, distance])			
+			if(tmp.distance < Temp_win.Distance)
+				Temp_run = Temp_win (not a pointer, copy data to save the last winner, it will be the next runner)
+				Temp_win = tmp    (temp is the new winner)
+			elseif(tmp.distance < Temp_run.Distance)
+				Temp_run = tmp
+				
+		wait for response of all C element maxChildren
+		(can be handled as soon as response arrives, even during previous forall)
+		if(C.Temp_win.Distance < Temp_win.Distance)
+			Temp_run = Temp_win
+			Temp_win = C.Temp_win
+			if(C.Temp_run.distance < Temp_run.distance)
+				Temp_run = C.Temp_run
+			elseif(C.Temp_win.distance < Temp_run.distance)
+				Temp_run = C.Temp_win
+
+	.SpreadMin(Destination's PID, {{ Winner's PID, Distance },{ Runner's PID, Distance }})
+		
+			
+			
+	
+General Questions
+
+*	Algorithm gives parameters or store them in the objects?
+		 

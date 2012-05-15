@@ -1,0 +1,4 @@
+set terminal dumb
+plot "nodes2.dat" with dots
+pause 1 "waiting one second, and reprint"
+reread

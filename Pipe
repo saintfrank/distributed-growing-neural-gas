@@ -1,0 +1,270 @@
+Messages
+
+N: Welcome to the DGNG pipe :)
+
+N: it took longer than expected (as always...)
+below some questions. and i uploaded the node.erl (_NOT_TESTED), so you can have a look. tomorrow i'm trying if it works as aspected
+please answer the questions below as soon as possible (so that i can finish node.erl, and test the "final" version)
+i did not update the pseudo code, hope it's ok
+
+
+N: hej, do we want to "store" parameters like maxAge for Edges in the nodes, or do we give it every time, so that it can be modified during runtime? i don't know if there is a reason to modify it at runtime?
+
+F: i think max ages is static...mm
+
+N: do we have to send a confirmation after each "function call" from outside?
+
+F: what kind of funcion call do you mean, "start(...)" of for every read pattern ?  (erlang is verified and safe, i think in general we should be "optimistic" oriented)
+
+N: is there a way to handle n-tuples, when n is not known?
+is there a way to handle them, when n is known? (i found only hardcoded examples, no parametric ones)
+i implemented the position now as list (it's a functional language, so there will be lists everywhere...)
+lists ok?
+
+F: in effect lists is ok, specially cause we want to do it multidimentional 
+
+N: i cannot see 3 types of managers, only 2:
++ finding nearest and 2nd nearest
++ updating error OR create new node (includes updating error)
+what is the 3rd one?
+
+F: I thought Neigbour lists updater
+
+N: the age is only increased in the neighborhood of one node, so he can do it
+(did you mean this one?)
+
+
+
+N: i dont understand: if i hink i should get an empty list "[]", i get an "ok" instead. why?
+
+F: often ok is returned by the kernel as success of a builtin funcion call , do you call any extern funtion ?
+
+N: don't think so. but i use utility function to start recursions with predefined parameters, maybe this is considered external function.
+
+node.erl is up and running (well, at least it is uploaded and can be run without errors)
+
+
+N: i think, we should clean up the pipe :)
+no, what i really think, is that we don't need the metamanager. just include it in the MaxFinder/Error Updater.
+
+F: I agree. Ithink it should be all done from the only manager that has a winner-knowlege, so Error Updater. He should control the tree.
+I wuold prefer to keep Max_finder small and fast. What do you think ?
+
+N: hm, i thought Max_Finder means the same as Error Updater.
+and exactly this one should be a tree and create a parallel tree of Min_Finder aka DistanceComputer
+
+this way round, because the Max_Finder is only backpropagating every lambda th iteration, and so is not so busy as the MinFinder who is backpropagating his min every iteration
+(right?)
+
+pseudo code is updated, now i'm thinking about addNode and its parameters
+
+F: FUck...i think i'm mismatching with the names...i mean Max when i think about election, but that's not max, actial is MIn .
+so if you re-read what I sead i meand winner_eletion to be small and fast. I'm changing my code now, i'll call it winner every time
+
+perfect, so we were talking about the same thing :)
+
+F: The code "runs" bot still i have to consider the subtrees, now i'm calculating the winner just for the nodes, i'll finish tomorrow.
+we should to write a test  where you send messages and check if is behaving good ..
+
+
+F: (1.19 h) Good NIght darling =)
+
+N: in the treegrowing is the pseudocode, how i imagine the treegrowing, now updated with the parallel trees
+
+N: we need to think about finishing criterias. one could be the max error we search, when we add a new node (if max number of nodes is reached, we could do this in spite of)
+like this we don'T need to search for something else.
+
+F: GoodMorning Sunshine. This monrning i got some practice of how file handling work in eralng. We can use a file where every node can write in the same time and rewrite it for every iteration from the beginning and have a real time schema. I'm providing a formatted reading.
+
+N:hej hej. i'm your opinion now, the input generator should produce a file, we don't need *infinite* sample sets. can you post/explain me the structure of the inputfile?
+
+F: I thoug about a line per pattern, and a coln per dimension, so in 2-d two colons with x and y values.
+
+F: NIls, could you send me the algorithm for the groth of Norrland's ?
+sorry, for not checking. i'll do it as fast as i can...
+
+hej francesco, how do i convert from float to integer?
+
+F: you should try trunc () or floor ()
+
+Trunc just truncates, floor does this :
+
+floor(V) when V >= 0 -> trunc(V);
+> >> floor(V) -> trunc(V - trunc(V) + 1) + trunc(V) - 1.
+
+thank, found it too. took me long to realize, that div takes only integer argument, and that some variables are converted be erlang from int to float.
+
+
+you were right, erlang is nice in compile time, but difficult to "understand" in runtime
+the algorithm is uploaded
+
+F: Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !!Ilove Types ! I HATE Types !! 
+
+=)
+
+N: ok... something i can do? should the input files look like this
+
+23.3 4
+2 4.5
+
+F: so space between dimensions and newline between samples
+this morning it remained to figure out how to format the read line, but i think is better if you could leave a TAB between the dimensions
+
+F: very stupid question, but if we cecrease the error of everyone of a constant, why don't do it automatically on the nodes ? We will just add it back to the winner and runner....i feel stupid, maiby is late
+
+N:damn, there where 2 pipe files.... i wrote this yesterday
+if u want input, rectangle, circle and uni can be produced
+type for example
+input_gen:file(10000,10,uni,"uni.dat").
+
+N: hilodensity and cluster work now. bad coding, if you want to change the parameter, you have to do it in the code, but only in the file() function.
+tomorrow (sunday) i'm going to pierre to learn for AI, can i come to your place before?
+
+F: Yes of course !! Pass here
+
+Nils
+
+and, yes of course, every node should do it itself. i wrote in the pseudo code askForMax (which is askforMaxError) should implement decreaseError, but i forgot to write it in the function. if you ask a node for the error, you should send the ALPHA or D and get back the already decreased error.
+but i think we have to propagate a signal, because we need to do it after the error is added to the winner (or at least we need to know, if we do it before or after). right?
+
+-----------------------	MONDAY
+
+THE RELATION IS DGNG.odt . I think it goes to the point of our implementation.
+I didn't mention the code, but i think is out of point.
+Tell me what do you think.
+
+	+ I implemented a function that trasforms a List of values (still integers or float) int a printable string.
+	  is in the pos2str.erl
+
+
+Now I've to work on my Embeded Control System Repot, they have to submit tomorrow too.
+
+
+N: hej, exam was ok, i think i made it. now i need a shower. i like the report, i corrected some mistakes.
+do you have some time tonight? then i would come to you and work there. if not i can do it here.
+
+
+
+i like the pictures in the report :)
+
+F: COme here whenever you want !
+ 
+
+F: I'm back In the PIPE !! THe Pipe'll never die. 
+I'm actually a bit concerned about the Bibliography. I never had to have that approach in my life, what does it mean, that every thing i want to say, i've to check if i'm quoting someome ? or, maybe try to quote someone every time i say something important... don't know, i've to ask, debugging the program doesn't scare me, but that a bit.
+I'll do some C, see you here :)   (i'm using a folder for my italian project, if is not a problem )
+
+
+N: hi, back in berlin for 2 days.
+i think whenever you take an idea like pipelining, you have to say where the idea comes from. so we should find a source for all things we didn't come up with ourselves.
+the festival was great. a bit too much electro/techno for my taste, but soooo many friendly peolpe. there were 60.000 people (i heard this somewhere...), but still everybody was friendly. it reminded me of sweden, but with much more open swedes :)
+also a lot of waiting in the line (for toilets and everything), but that's part of socialism/communism, isn't it?
+how were you exams? are there still some left? how do you like pisa rigth now?
+Berlin in summer is amazing.
+now i have to try to arrange my room. it is the first time in my life, that i don't have a room for myself. here is a room, but it isn'tt yet my room. but i will fix this before going to bed.
+too bad that osoppo is so far north in italy. but i'll come to visit you another time....
+cheers
+Nils
+
+
+F: Hi NIls, i just survived to my school issues, now i've got just pleasant exams to work on, but is the down-hill XD
+I'm ready to work on ... now i'm putting the peices together, 
+do you remember what command (i don't remember the parameters..) were you giving to the program to test it ?
+
+Anyways, enjoy the sun !!
+
+Francesco
+
+P.S. Now dropbox supports the oldes versions backup, is a real SVN now !
+
+
+n: it is engine:start(FILE_NAME). i'm doing this and that, but have planned to start on monday with erlang.then i have one week, plus the following one if necessary. but usually i check the web daily, so ask me questions.
+nice to see the small icon "pipe was updated", and thus nice to hear from you :)
+
+F: i've added a nice book in pdf about erlang programming, it was also suggested by " BigÖ" (Ölle), is in the DNGBox if you need, i like it
+	in my opinion there is gonna be a lot of debugging, in whitch i think we should print more nice things, as for example:
+__________________________
+
+	CHECKPOINT
+M F <PID> message
+__________________________
+
+where a CHECKPOINT is a sentence that claims a step in the algorithm as "new pattern "   or "winner election for pattern xxx completed"
+and M is the module, F the function, the rest is trivial, what do you think ? of course in some cases one of this could be missing, but i think it would be easier to debug...
+
+i'm getting info about some thinkgs concerning the erlang shell and try to acheive the print on file of the node's position
+....it's late, maybe tomorrow , Sov gott Kompis ! :)
+
+P.S. tomorrow morning i'll write a meke file, so that we'll just write "make test" and go...if I can
+
+
+
+F: ok, two new things:
+- i managed to understand a bit how the INIT module works ( to start programs with parameters within a single line as we can now)
+so , in order to test the program with the file uni.dat just write "make testuni", it will recompile if necessary and start the program (i needed to add a special "starter" fucntion, remember me to talk about it..) 
+- i had problems with reading floating number, the engine was not using a good funcition, i added in the end 2 function that were ready in the writing.erl file, now it reads the long and complicated numbers ! :), also i changed a bit the file opening including eventual problems with reading
+
+IMPORTANT: i'd like to print the position of the nodes in a file, so , we need to pass the FILE_WRITE variable to the nodes, the mechanism to print is almost implemented... We should pass it as a parameter to node_life(), do you agree ??
+
+see you here XD
+
+(temporary i'll make the nodes write statically on "nodes.dat", just for debugging, anyways, i writing on a common file in a distributed implementation will be a issue, there is no shared memory..)
+
+N:hello, i'm almost there. the compile and start function is great. i'm going to university for some administrational stuff, but i'm going to debug in the train (at least try to). Dropbox has now SVN? so we can both write on the same file and it will merge it?
+see you soon
+Nils
+
+N: hejho, in node.erl in the request_distance part you want to write something to a file. this does not work (put a message after this and you will never see it).
+i feel like in a big forest, and i try to find a way out. but often i come to places that look familiar. On one hand it's nice to feel at home and on the other i feel, that i don't progress. so, enough strange words, back to work :)
+
+
+F: i think one here (Upp"Frozen"Sala) there is very intense, everyone is dealing with a "so..now ?" feeling, my impression (here is 40° usually) is think about it like a dream, always not shure if it really happened, then i see the pictures, and i feel strange, my mind really can't believe.. is like drunk pictures..but 1000s of them. i'll figure out, WE will..
+
+one thing that i Didn't figure out, is the print, actually I didn't try it, i'll check its behaviour, and will let you know..
+
+N: hej, did you saved your work? because i want to try the SVN function and copy my files back to the dropbox
+
+F: no my work is on drop box, tar everithing and send it to both my mail in case..
+..i just found the problem with the writes on the file doing some tries, i'm correcting it .
+
+ok, it does not merge :( so we have to split the files. on which files are you working?
+or how long are you working, then i will work at another time (which is not soo good, as a day has only 24h and if we work simultaneously, we can chat about questions)
+
+yes is true, we goota work together, just chatting and touching different files..let's do this tell i create the file mutex
+
+N: what do we do with this mutex file?
+
+F : read it, if you open mutex with a program like gedit, it tells you if is fresh, so before working on a file, we open it (the fresh version) pu our name near the file ( F or N) until we close it 
+
+N: ok. now as the file was not empty, i understood it. is it ok for you, if i put all the files in a "src" folder? my eclipse needs it like this...
+
+F: mmm.. then when we'll open a file we'll have to specify the path, anyways can i suggest you the program kate ?
+is a very simple ide and has a small terminal on the bottom
+ 
+N: ok, i'll try it.
+
+F: i gave you the xml file for erlang, to use it for the highliting in kate just put it iin the folder with the other language desctiptors (to finde where is the folder in you pc, look for a similar from the console (with the command "locate cpp.xml", for the c++ ) 
+
+F:I'm gonna change the way they print, there is a cuncurrency issue now..
+
+F: you didn't put your nome on mutex ;)
+
+N: was just checking, now there is my name, syntaxhighlightning was out of the box
+
+N: but Eclispe is still my favorite ;) but i'm gonna use kate now, i'm just more gnome than KDE...maybe there is gate ^^ ok, enough bad jokes. i'm meeting a friend soon, but i'm gonna work this night some more. and i thhink, that we both need the node-file all the time.
+
+F:Ta.da !!! :) Our first nodes movement trace !! you can see in nodes.dat that actually we can now make them print the position (the position is continually appended to the file, so to see something like DEMOGNG we need to empty the file and replot coninously, we will do it), if you want ou can try with the command "gnuplot plotter" and than watch nodes.png, see you
+----------------------------------------------
+
+
+
+What to do
+
++ Decide how to split -> Manager(F), Node (N, done)
+
++ take a look at gnuplot (F) v
++ write file in erlang (F) v
+
++ extract benchmarks, exampleData from DemoGNG (N)
+
+

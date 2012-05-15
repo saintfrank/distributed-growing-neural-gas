@@ -1,0 +1,9 @@
+Q ! {request_decreased_error_and_position, self(), ALPHA},
+
+%TODO decrease error only for q, not for f???
+F ! {request_position, self()},
+
+aus: Line 197, engine.erl
+
+ageEdges macht was komisches.
+der erste Node scheint tot zu sein, aber ist immernoch inder Nachbarschaftsliste
