@@ -1,7 +1,0 @@
-+ Now the manager don't receives info from the subtrees.
-+ Now the win_man behaves just like subtree. I've to check ..if is the Root, blablabla
-+ update pseudocode
-
-+ afterwards i should remove all of those stupid {message, PID}  if I don't use the PID
-+ if the error decreasing is done anyways , so ...why not do it from the nodes ??????
-

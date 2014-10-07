@@ -1,4 +1,0 @@
-#!/bin/sh
-echo Script START
-rm -rf log
-make testuni 2> log & gnuplot plotter
