@@ -10,30 +10,30 @@
 %%
 %% Exported Functions
 %%
--export([start/1, start/12]).
+-export([start/1, start/11]).
 
 %%
 %% API Functions
 %%
-start ( FILE_NAME ) -> { ok , FILE } = file : open ( FILE_NAME , [ read ] ) , { ok , FILE_WRITE } = file : open ( nodes .
+start(FILE_NAME) ->
+    {ok, FILE} = file:open(FILE_NAME, [read]),
+    io:format(" file ~p opened as ~p~n", [FILE_NAME, FILE]),
+    start(FILE, 100, 88, 600, 5.0e-2,
+	  5.99999999999999947438e-4, 5.0e-1, 9.995e-1, 1.0e-1,
+	  1.0e-1, 2.99999999999999988898e-1).%TODO set those
 
-
-dat , [ write ] ) , io : format ( " file ~p opened as ~p~n" , [ FILE_NAME , FILE ] ) , start ( FILE , FILE_WRITE , 100 , 88 , 600 , 5.00000000000000027756e-02 , 5.99999999999999947438e-04 , 5.00000000000000000000e-01 , 9.99500000000000055067e-01 , 1.00000000000000005551e-01 , 5 , 1.00000000000000005551e-01 ) .
-
-
-%TODO set those
-start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
-      MOVE_K, MOVE_N, ALPHA, D, FINAL_ERROR,
-      FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY) ->
-    start(FILE, FILE_WRITE, 100, 88, 600, 5.0e-2,
+start(FILE, MAX_NODES, MAX_AGE, LAMBDA, MOVE_K, MOVE_N,
+      ALPHA, D, FINAL_ERROR, FINAL_DELTA_ERROR,
+      FINAL_DELTA_ERROR_DECAY) ->
+    start(FILE, 100, 88, 600, 5.0e-2,
 	  5.99999999999999947438e-4, 5.0e-1, 9.995e-1, 3, 5, 0, 0,
 	  FINAL_ERROR, FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY,
 	  err_man, win_man, [], 0, 0).
 
-start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
-      MOVE_K, MOVE_N, ALPHA, D, M, N, 0, 0, FINAL_ERROR,
-      FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY, _ERR_MAN,
-      _WIN_MAN, LOST_NODE_LIST, LAST_ERROR, DELTA_ERROR) ->
+start(FILE, MAX_NODES, MAX_AGE, LAMBDA, MOVE_K, MOVE_N,
+      ALPHA, D, M, N, 0, 0, FINAL_ERROR, FINAL_DELTA_ERROR,
+      FINAL_DELTA_ERROR_DECAY, _ERR_MAN, _WIN_MAN,
+      LOST_NODE_LIST, LAST_ERROR, DELTA_ERROR) ->
     %% Algorithm
     %%
     %% 0. 	Create max			(this has to create a MinManager)
@@ -70,10 +70,10 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
     ERR_MAN ! {add_Node, FIRST_NODE},
     ERR_MAN ! {add_Node, SECOND_NODE},
     io:format(" leaving setup~n"),
-    start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
-	  MOVE_K, MOVE_N, ALPHA, D, M, N, 1, 2, FINAL_ERROR,
-	  FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY, ERR_MAN,
-	  WIN_MAN, LOST_NODE_LIST, LAST_ERROR, DELTA_ERROR);
+    start(FILE, MAX_NODES, MAX_AGE, LAMBDA, MOVE_K, MOVE_N,
+	  ALPHA, D, M, N, FINAL_ERROR, FINAL_DELTA_ERROR,
+	  FINAL_DELTA_ERROR_DECAY, 0, 2, ERR_MAN, WIN_MAN,
+	  LOST_NODE_LIST, LAST_ERROR, DELTA_ERROR);
 %% 	countIteration := 0
 %% 	countNodes := 0
 %% 	Create 2 nodes randomly in the inputspace
@@ -82,11 +82,10 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
 %% 	Make the 2 nodes neighbors,2 times nodes .newEdge(otherNode)
 %% ---------------	
 %% 	
-start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
-      MOVE_K, MOVE_N, ALPHA, D, M, N, ITERATION,
-      NUMBER_OF_NODES, FINAL_ERROR, FINAL_DELTA_ERROR,
-      FINAL_DELTA_ERROR_DECAY, ERR_MAN, WIN_MAN,
-      LOST_NODE_LIST, LAST_ERROR, DELTA_ERROR) ->
+start(FILE, MAX_NODES, MAX_AGE, LAMBDA, MOVE_K, MOVE_N,
+      ALPHA, D, M, N, ITERATION, NUMBER_OF_NODES, FINAL_ERROR,
+      FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY, ERR_MAN,
+      WIN_MAN, LOST_NODE_LIST, LAST_ERROR, DELTA_ERROR) ->
     io:format("LOOP we're in the loop I = ~p~n",
 	      [ITERATION]),
     INPUT = read_Pattern(FILE),
@@ -122,15 +121,12 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
     %% 	
     %% 7.	implemented in 3.
     %%
-    io:format("LOOP checking if lambda th iteration~n"),
-    REM_IT = trunc(ITERATION) rem trunc(LAMBDA),
-    io:format("LOOP REM_IT calculated : ~p~n", [REM_IT]),
+    REM_IT = ITERATION rem LAMBDA,
     if REM_IT == 0 ->
 	   ERR_MAN ! {request_decreased_error, self(), D},
 	   receive
 	     {my_error, ERR_MAN, MAX} -> {Q, ERROR} = MAX
 	   end,
-	   io:format("LOOP Q received: ~p~n", [Q]),
 	   %%%%%check if GNG should stop
 	   if ERROR < FINAL_ERROR ->
 		  io:format(" with ~p nodes a maximal error of ~p "
@@ -153,16 +149,14 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
 		  Q !
 		    {request_decreased_error_and_position, self(), ALPHA},
 		  %TODO decrease error only for q, not for f???
-		  F ! {request_position, self()},
+		  F ! {position_request, self()},
 		  receive
 		    {my_decreased_error_and_position, Q, Q_RETURN} ->
 			{Q_ERROR, Q_POSITION} = Q_RETURN
 		  end,
-		  io:format("LOOP position and error from Q received ~n"),
 		  receive
 		    {my_position, F, F_RETURN} -> F_POSITION = F_RETURN
 		  end,
-		  io:format("LOOP position from F received ~n"),
 		  NEW_NODE = spawn(node, node_life,
 				   [getMiddle(Q_POSITION,
 					      F_POSITION), %POSITION,
@@ -174,22 +168,22 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
 			  LOST_NODE_LIST)
 	   end,
 	   % check for messages of modification
-	   checkMessages(FILE, FILE_WRITE, MAX_NODES, MAX_AGE,
-			 LAMBDA, MOVE_K, MOVE_N, ALPHA, D, M, N, ITERATION + 1,
-			 NUMBER_OF_NODES, FINAL_ERROR, FINAL_DELTA_ERROR,
-			 FINAL_DELTA_ERROR_DECAY, ERR_MAN, WIN_MAN,
-			 LOST_NODE_LIST, ERROR,
+	   checkMessages(FILE, MAX_NODES, MAX_AGE, LAMBDA, MOVE_K,
+			 MOVE_N, ALPHA, D, M, N, FINAL_ERROR, FINAL_DELTA_ERROR,
+			 FINAL_DELTA_ERROR_DECAY, ITERATION + 1,
+			 NUMBER_OF_NODES, ERR_MAN, WIN_MAN, LOST_NODE_LIST,
+			 ERROR,
 			 DELTA_ERROR * FINAL_DELTA_ERROR_DECAY +
 			   abs(LAST_ERROR - ERROR));
        %DELTA_ERROR = DELTA_ERROR*ERROR_DECAY + abs(LAST_ERROR - ERROR)
        true ->
 	   ERR_MAN ! {decrease_error, self()},
 	   % check for messages of modification
-	   checkMessages(FILE, FILE_WRITE, MAX_NODES, MAX_AGE,
-			 LAMBDA, MOVE_K, MOVE_N, ALPHA, D, M, N, ITERATION + 1,
-			 NUMBER_OF_NODES, FINAL_ERROR, FINAL_DELTA_ERROR,
-			 FINAL_DELTA_ERROR_DECAY, ERR_MAN, WIN_MAN,
-			 LOST_NODE_LIST, LAST_ERROR, DELTA_ERROR)
+	   checkMessages(FILE, MAX_NODES, MAX_AGE, LAMBDA, MOVE_K,
+			 MOVE_N, ALPHA, D, M, N, FINAL_ERROR, FINAL_DELTA_ERROR,
+			 FINAL_DELTA_ERROR_DECAY, ITERATION + 1,
+			 NUMBER_OF_NODES, ERR_MAN, WIN_MAN, LOST_NODE_LIST,
+			 LAST_ERROR, DELTA_ERROR)
     end.
 
 %% 8.	if(countIteration mod lamba == 0)
@@ -225,25 +219,25 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
 %%
 
 %%%%CheckMessages(same arguments as start())
-checkMessages(FILE, FILE_WRITE, MAX_NODES, MAX_AGE,
-	      LAMBDA, MOVE_K, MOVE_N, ALPHA, D, M, N, FINAL_ERROR,
-	      FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY, ITERATION,
-	      NUMBER_OF_NODES, ERR_MAN, WIN_MAN, LOST_NODE_LIST,
-	      LAST_ERROR, DELTA_ERROR) ->
+checkMessages(FILE, MAX_NODES, MAX_AGE, LAMBDA, MOVE_K,
+	      MOVE_N, ALPHA, D, M, N, FINAL_ERROR, FINAL_DELTA_ERROR,
+	      FINAL_DELTA_ERROR_DECAY, ITERATION, NUMBER_OF_NODES,
+	      ERR_MAN, WIN_MAN, LOST_NODE_LIST, LAST_ERROR,
+	      DELTA_ERROR) ->
     receive
       {nodeRemoved, MANAGER_PID} ->
-	  checkMessages(FILE, FILE_WRITE, MAX_NODES, MAX_AGE,
-			LAMBDA, MOVE_K, MOVE_N, ALPHA, D, M, N, FINAL_ERROR,
-			FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY, ITERATION,
-			NUMBER_OF_NODES - 1, ERR_MAN, WIN_MAN,
-			LOST_NODE_LIST ++ [MANAGER_PID], LAST_ERROR,
+	  checkMessages(FILE, MAX_NODES, MAX_AGE, LAMBDA, MOVE_K,
+			MOVE_N, ALPHA, D, M, N, FINAL_ERROR, FINAL_DELTA_ERROR,
+			FINAL_DELTA_ERROR_DECAY, ITERATION, NUMBER_OF_NODES - 1,
+			ERR_MAN, WIN_MAN,
+			lists:append([LOST_NODE_LIST, MANAGER_PID]), LAST_ERROR,
 			DELTA_ERROR)
       after 1 ->
-		start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
-		      MOVE_K, MOVE_N, ALPHA, D, M, N, FINAL_ERROR,
-		      FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY, ITERATION,
-		      NUMBER_OF_NODES, ERR_MAN, WIN_MAN, LOST_NODE_LIST,
-		      LAST_ERROR, DELTA_ERROR)
+		start(FILE, MAX_NODES, MAX_AGE, LAMBDA, MOVE_K, MOVE_N,
+		      ALPHA, D, M, N, FINAL_ERROR, FINAL_DELTA_ERROR,
+		      FINAL_DELTA_ERROR_DECAY, ITERATION, NUMBER_OF_NODES,
+		      ERR_MAN, WIN_MAN, LOST_NODE_LIST, LAST_ERROR,
+		      DELTA_ERROR)
     end.
 
 %% addNode(NEW_NODE, NUMBER_OF_NODES)
@@ -252,20 +246,13 @@ checkMessages(FILE, FILE_WRITE, MAX_NODES, MAX_AGE,
 addNode(ERR_MAN, NEW_NODE, NUMBER_OF_NODES, M, N, []) ->
     CHECK = NUMBER_OF_NODES rem N,
     if CHECK == 0 ->
-	   io:format("ENGINE_ADDNODE sends move_nodes_start~n"),
 	   ERR_MAN !
 	     {move_nodes_start, NEW_NODE,
 	      getDirections(NUMBER_OF_NODES + 1, M, N)};
-       true ->
-	   io:format("ENGINE_ADDNODE sends addNode~p~n",
-		     [NEW_NODE]),
-	   ERR_MAN ! {addNode, NEW_NODE}
+       true -> ERR_MAN ! {addNode, NEW_NODE}
     end;
 addNode(ERR_MAN, NEW_NODE, NUMBER_OF_NODES, M, N,
 	[HEAD | LOST_NODE_LIST]) ->
-    io:format("ENGINE_ADDNODE sends addNode, to first "
-	      "element of LOST_NODE_LIST~n"),
-    NEW_NODE ! {setParent, HEAD},
     HEAD ! {addNode, NEW_NODE}.
 
 %%getDirection(C, M, N)
@@ -307,7 +294,8 @@ read_Pattern(File) ->
       eof ->
 	  file:position(File, 0),
 	  get_coordinates(io:get_line(File, ""));
-      Line -> %io:format( "I've read ~s~n",[Line]),
+      Line ->
+	  io:format("I've read ~s~n", [Line]),
 	  get_coordinates(Line)
     end.
 
@@ -321,10 +309,11 @@ get_coordinates(LINE) -> get_coordinates(LINE, []).
 get_coordinates([], TEMP) -> TEMP;
 get_coordinates([HEAD | TAIL], TEMP) ->
     if HEAD == 9; HEAD == 10 ->
-	   %io:format("found tab or new line~n"),
+	   io:format("found tab or new line~n"),
 	   get_coordinates(TAIL, TEMP);
        true ->
-	   %io:format("New number added : ~w	~w~n",[TEMP, [list_to_integer([HEAD])] ]),
+	   io:format("New number added : ~w\t~w~n",
+		     [TEMP, [list_to_integer([HEAD])]]),
 	   get_coordinates(TAIL,
 			   TEMP ++
 			     [list_to_integer([HEAD])])                        %%io:format("New number added : ~w~n",[TEMP])

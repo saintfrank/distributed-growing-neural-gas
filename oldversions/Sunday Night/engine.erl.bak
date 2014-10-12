@@ -15,10 +15,7 @@
 %%
 %% API Functions
 %%
-start ( FILE_NAME ) -> { ok , FILE } = file : open ( FILE_NAME , [ read ] ) , { ok , FILE_WRITE } = file : open ( nodes .
-
-
-dat , [ write ] ) , io : format ( " file ~p opened as ~p~n" , [ FILE_NAME , FILE ] ) , start ( FILE , FILE_WRITE , 100 , 88 , 600 , 5.00000000000000027756e-02 , 5.99999999999999947438e-04 , 5.00000000000000000000e-01 , 9.99500000000000055067e-01 , 1.00000000000000005551e-01 , 5 , 1.00000000000000005551e-01 ) .
+start ( FILE_NAME ) -> { ok , FILE } = file : open ( FILE_NAME , [ read ] ) , { ok , FILE_WRITE } = file : open ( nodes . dat , [ write ] ) , io : format ( " file ~p opened as ~p~n" , [ FILE_NAME , FILE ] ) , start ( FILE , FILE_WRITE , 100 , 88 , 600 , 5.00000000000000027756e-02 , 5.99999999999999947438e-04 , 5.00000000000000000000e-01 , 9.99500000000000055067e-01 , 1.00000000000000005551e-01 , 5 , 1.00000000000000005551e-01 ) .
 
 
 %TODO set those

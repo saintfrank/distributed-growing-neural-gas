@@ -7,28 +7,32 @@
 %% Include files
 %%
 
-%%
+%%s
 %% Exported Functions
 %%
--export([start/1, start/12]).
+-export([start/1, start/12, starter/1]).
 
 %%
 %% API Functions
-%%
-start ( FILE_NAME ) -> { ok , FILE } = file : open ( FILE_NAME , [ read ] ) , { ok , FILE_WRITE } = file : open ( nodes .
+%%engine:start(int.dat).
+
+%% this function isto semplify the init boot, returning sudden
+starter(PARAM) -> spawn(fun () -> start(PARAM) end).
+
+start ( [ FILE_NAME ] ) -> case file : open ( FILE_NAME , [ read ] ) of { ok , FILE } -> case file : open ( nodes . dat , [ write ] ) of { ok , FILE_WRITE } -> io : format ( " file ~p opened as ~p~n" , [ FILE_NAME , FILE ] ) , start ( FILE , FILE_WRITE , 100 , 10 , 3 , 5.00000000000000000000e-01 , 5.99999999999999947438e-04 , 5.00000000000000000000e-01 , 9.99500000000000055067e-01 , 1 , 5 , 1.00000000000000004792e-04 ) ; { error , WHY } -> io : format ( "Problems opening the file nodes.dat because ~p~n" , [ WHY ] ) end ; { error , WHY } -> io : format ( "Problems opening the file ~p because ~p~n" , [ FILE_NAME , WHY ] ) end .
 
 
-dat , [ write ] ) , io : format ( " file ~p opened as ~p~n" , [ FILE_NAME , FILE ] ) , start ( FILE , FILE_WRITE , 100 , 88 , 600 , 5.00000000000000027756e-02 , 5.99999999999999947438e-04 , 5.00000000000000000000e-01 , 9.99500000000000055067e-01 , 1.00000000000000005551e-01 , 5 , 1.00000000000000005551e-01 ) .
+                        %	 88	 600  0.05						0.1
 
+                            %TODO set those
 
-%TODO set those
 start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
       MOVE_K, MOVE_N, ALPHA, D, FINAL_ERROR,
       FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY) ->
-    start(FILE, FILE_WRITE, 100, 88, 600, 5.0e-2,
-	  5.99999999999999947438e-4, 5.0e-1, 9.995e-1, 3, 5, 0, 0,
-	  FINAL_ERROR, FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY,
-	  err_man, win_man, [], 0, 0).
+    start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
+	  MOVE_K, MOVE_N, ALPHA, D, 3, 5, 0, 0, FINAL_ERROR,
+	  FINAL_DELTA_ERROR, FINAL_DELTA_ERROR_DECAY, err_man,
+	  win_man, [], 0, 0).
 
 start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
       MOVE_K, MOVE_N, ALPHA, D, M, N, 0, 0, FINAL_ERROR,
@@ -56,13 +60,14 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
 			0, %ERROR,
 			ERR_MAN, % PARENT
 			self()]), %ENGINE
-    io:format(" first node created~n"),
+    io:format(" first node created ~p~n", [FIRST_NODE]),
     SECOND_NODE = spawn(node, node_life,
 			[read_Pattern(FILE), %POSITION,
 			 [{FIRST_NODE, 0}], % EDGES,
 			 0, %ERROR,
 			 ERR_MAN, % PARENT
 			 self()]), %ENGINE
+    io:format(" first node created ~p~n", [SECOND_NODE]),
     ERR_MAN ! {addNode, FIRST_NODE},
     ERR_MAN ! {addNode, SECOND_NODE},
     %io:format(" ITERATION = ~p~n",[ITERATION]),
@@ -87,10 +92,19 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
       NUMBER_OF_NODES, FINAL_ERROR, FINAL_DELTA_ERROR,
       FINAL_DELTA_ERROR_DECAY, ERR_MAN, WIN_MAN,
       LOST_NODE_LIST, LAST_ERROR, DELTA_ERROR) ->
-    io:format("LOOP we're in the loop I = ~p~n",
-	      [ITERATION]),
+    io:format("****************************************~n~nL"
+	      "OOP we're in the loop I = ~p and have "
+	      "~p Nodes~n~n*********************************"
+	      "*******~n",
+	      [ITERATION, NUMBER_OF_NODES]),
     INPUT = read_Pattern(FILE),
-    io:format("LOOP Input read ~p~n", [INPUT]),
+    io:format("\tLOOP Input read ~p~n", [INPUT]),
+    %% Reset the file
+    if ITERATION rem 600 == 50 ->
+	   file:copy("nodes.dat", "nodes2.dat");
+       ITERATION rem 600 == 100 -> file:delete("nodes.dat");
+       true -> ok
+    end,
     WIN_MAN ! {new_input, self(), INPUT},
     io:format("LOOP searching for winner~n"),
     receive
@@ -115,54 +129,71 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
     WINNER ! {moveKN, INPUT, MOVE_K, MOVE_N},
     %% 5.	s1.Node.Move(I, move_k, move_n)	
     %% 		
-    WINNER ! {refreshEdge, RUNNER_UP},
     RUNNER_UP ! {refreshEdge, WINNER},
+    WINNER ! {refreshEdge, RUNNER_UP},
     %% 6.	s1.Node.FreshNeighbor(s2.Node)
     %% 	s2.Node.FreshNeighbor(s1.Node)	
     %% 	
     %% 7.	implemented in 3.
     %%
-    io:format("LOOP checking if lambda th iteration~n"),
+    %TODO not sure if here or somewhere else
+    io:format("ENGINE / LOOP waiting for the \"addEdges_done\" "
+	      "message~n"),
+    receive {ageEdges_done, WINNER} -> ok end,
+    io:format("ENGINE / LOOP : message receive. checking "
+	      "if we're in the lambda'th iteration~n"),
     REM_IT = trunc(ITERATION) rem trunc(LAMBDA),
-    io:format("LOOP REM_IT calculated : ~p~n", [REM_IT]),
+    io:format("ENGINE / LOOP REM_IT calculated : ~p~n",
+	      [REM_IT]),
     if REM_IT == 0 ->
 	   ERR_MAN ! {request_decreased_error, self(), D},
 	   receive
 	     {my_error, ERR_MAN, MAX} -> {Q, ERROR} = MAX
 	   end,
 	   io:format("LOOP Q received: ~p~n", [Q]),
-	   %%%%%check if GNG should stop
+	   %%%%%check if GNG should stop engine:start(int.dat).
 	   if ERROR < FINAL_ERROR ->
-		  io:format(" with ~p nodes a maximal error of ~p "
-			    "is reached~n",
-			    [NUMBER_OF_NODES, ERROR]);
+		  io:format("LOOP with ~p nodes a maximal error of "
+			    "~p is reached~n",
+			    [NUMBER_OF_NODES, ERROR]),
+		  exit("maximal error reached");
 	      %TODO store the graph
 	      DELTA_ERROR <
 		FINAL_DELTA_ERROR ->%DELTA_ERROR = DELTA_ERROR*ERROR_DECAY + abs(LAST_ERROR - ERROR)
-		  io:format(" maximal number (~p) of nodes reached, "
+		  io:format("LOOP maximal number (~p) of nodes reached, "
 			    "and the maximal error stays the same "
 			    "at about ~p~n",
 			    [NUMBER_OF_NODES, ERROR]);
 	      true ->
 		  Q ! {request_maxNeighbor, self()},
+		  io:format("LOOP maxNeighbor request ~n"),
 		  receive
 		    {my_maxNeighbor, Q, MAX_NEIGHBOR} -> F = MAX_NEIGHBOR
 		  end,
-		  Q ! {removeEdge, F},
-		  F ! {removeEdge, Q},
+		  io:format("LOOP maxNeighbor ~p received ~n", [F]),
 		  Q !
 		    {request_decreased_error_and_position, self(), ALPHA},
 		  %TODO decrease error only for q, not for f???
-		  F ! {request_position, self()},
+		  %hm, i'm thinkin about it, i had a reason, but i can't remember it. i will write my answer here.
+		  % i dohn't know, so i change it
+		  %F ! {request_position, self()},
+		  F !
+		    {request_decreased_error_and_position, self(), ALPHA},
+		  io:format("LOOP asking for error and position ~n"),
 		  receive
 		    {my_decreased_error_and_position, Q, Q_RETURN} ->
 			{Q_ERROR, Q_POSITION} = Q_RETURN
 		  end,
 		  io:format("LOOP position and error from Q received ~n"),
+		  %receive
+		  %{my_position, F, F_RETURN}->
+		  %	F_POSITION = F_RETURN
+		  %end,
+		  %io:format("LOOP position from F received ~n"),
 		  receive
-		    {my_position, F, F_RETURN} -> F_POSITION = F_RETURN
+		    {my_decreased_error_and_position, F, F_RETURN} ->
+			{_F_ERROR, F_POSITION} = F_RETURN
 		  end,
-		  io:format("LOOP position from F received ~n"),
 		  NEW_NODE = spawn(node, node_life,
 				   [getMiddle(Q_POSITION,
 					      F_POSITION), %POSITION,
@@ -171,12 +202,17 @@ start(FILE, FILE_WRITE, MAX_NODES, MAX_AGE, LAMBDA,
 				    ERR_MAN, % PARENT
 				    self()]), %ENGINE
 		  addNode(ERR_MAN, NEW_NODE, NUMBER_OF_NODES + 1, M, N,
-			  LOST_NODE_LIST)
+			  LOST_NODE_LIST),
+		  Q ! {refreshEdge, NEW_NODE},
+		  F ! {refreshEdge, NEW_NODE},
+		  %inserts the new node in the neighborhood lists of f and q
+		  Q ! {removeEdge, F},
+		  F ! {removeEdge, Q}
 	   end,
 	   % check for messages of modification
 	   checkMessages(FILE, FILE_WRITE, MAX_NODES, MAX_AGE,
 			 LAMBDA, MOVE_K, MOVE_N, ALPHA, D, M, N, ITERATION + 1,
-			 NUMBER_OF_NODES, FINAL_ERROR, FINAL_DELTA_ERROR,
+			 NUMBER_OF_NODES + 1, FINAL_ERROR, FINAL_DELTA_ERROR,
 			 FINAL_DELTA_ERROR_DECAY, ERR_MAN, WIN_MAN,
 			 LOST_NODE_LIST, ERROR,
 			 DELTA_ERROR * FINAL_DELTA_ERROR_DECAY +
@@ -252,19 +288,19 @@ checkMessages(FILE, FILE_WRITE, MAX_NODES, MAX_AGE,
 addNode(ERR_MAN, NEW_NODE, NUMBER_OF_NODES, M, N, []) ->
     CHECK = NUMBER_OF_NODES rem N,
     if CHECK == 0 ->
-	   io:format("ENGINE_ADDNODE sends move_nodes_start~n"),
+	   io:format("addNODE ENGINE_ADDNODE sends move_nodes_start~n"),
 	   ERR_MAN !
 	     {move_nodes_start, NEW_NODE,
 	      getDirections(NUMBER_OF_NODES + 1, M, N)};
        true ->
-	   io:format("ENGINE_ADDNODE sends addNode~p~n",
+	   io:format("addNODE ENGINE_ADDNODE sends addNode~p~n",
 		     [NEW_NODE]),
 	   ERR_MAN ! {addNode, NEW_NODE}
     end;
-addNode(ERR_MAN, NEW_NODE, NUMBER_OF_NODES, M, N,
-	[HEAD | LOST_NODE_LIST]) ->
-    io:format("ENGINE_ADDNODE sends addNode, to first "
-	      "element of LOST_NODE_LIST~n"),
+addNode(_ERR_MAN, NEW_NODE, _NUMBER_OF_NODES, _M, _N,
+	[HEAD | _LOST_NODE_LIST]) ->
+    io:format("addNODE ENGINE_ADDNODE sends addNode, "
+	      "to first element of LOST_NODE_LIST~n"),
     NEW_NODE ! {setParent, HEAD},
     HEAD ! {addNode, NEW_NODE}.
 
@@ -302,30 +338,71 @@ getMiddle([A_HEAD | A_TAIL], [B_HEAD | B_TAIL], TMP) ->
 
 %% Reads jsut one pattern
 %% + returns a List of Coordinates
-read_Pattern(File) ->
-    case io:get_line(File, "") of
-      eof ->
-	  file:position(File, 0),
-	  get_coordinates(io:get_line(File, ""));
-      Line -> %io:format( "I've read ~s~n",[Line]),
-	  get_coordinates(Line)
-    end.
+% read_Pattern(File) ->
+% 		
+%     case io:get_line(File, "")
+% 	of
+% 	        eof  -> file:position(File,0),
+% 					get_coordinates(io:get_line(File, ""));
+% 	        Line -> %io:format( "I've read ~s~n",[Line]),
+% 					get_coordinates(Line)
+% 			
+%     end
+% 	
+% .
 
 %%%% get_coordinates(LINE) %%%%%%%%%%
 %% given as input a Line containing indefinete number of colons, reads the coordinates a puts them in a List
 %%
 %% + returns a List of coordinates
+%
+% get_coordinates(LINE) -> get_coordinates(LINE,[]).
+%
+% get_coordinates([],TEMP) -> TEMP;
+% get_coordinates([HEAD|TAIL],TEMP) ->
+% 	if
+% 		HEAD == 9; HEAD ==10 ->
+% 			%io:format("found tab or new line~n"),
+% 			get_coordinates(TAIL, TEMP);
+% 		
+% 		true->	
+% 			%io:format("New number added : ~w	~w~n",[TEMP, [list_to_integer([HEAD])] ]),
+% 			get_coordinates(TAIL, lists:append(TEMP, [list_to_integer([HEAD])]))
+% 			%%io:format("New number added : ~w~n",[TEMP])
+% 			
+% 	end
+% .
 
-get_coordinates(LINE) -> get_coordinates(LINE, []).
+%%%%%% read_Pattern(File)
+%% reads a new line (a string) form the file descriptor File, separates the substring separated by "	", and converts them into a list of numbers %%
+%% (integesr or float)
+%%
+%%	+ returns: a list of values
+%%	+ calls: convert(Line)
+%%
+read_Pattern(File) ->
+    case io:get_line(File, "") of
+      eof -> file:close(File);
+      Line -> %%io:format( "I've read ~s~n",[Line]),
+	  Pattern = string:tokens(Line, "\t"),
+	  Numbers =
+	      convert(Pattern)                        %%io:format( "READ : Pattern: ~s Numbers :~w~n, ",[Pattern,Numbers])
+    end.
 
-get_coordinates([], TEMP) -> TEMP;
-get_coordinates([HEAD | TAIL], TEMP) ->
-    if HEAD == 9; HEAD == 10 ->
-	   %io:format("found tab or new line~n"),
-	   get_coordinates(TAIL, TEMP);
-       true ->
-	   %io:format("New number added : ~w	~w~n",[TEMP, [list_to_integer([HEAD])] ]),
-	   get_coordinates(TAIL,
-			   TEMP ++
-			     [list_to_integer([HEAD])])                        %%io:format("New number added : ~w~n",[TEMP])
+%%%% convert(LINE) %%%%%%%%%%
+%% given as input a List of Tokens (String) containing the BitString form of a floating point or a integer, returns a List of corrisponding integers or %%% float
+%%
+%% es: convert(["22.2","1","33.241235"]) -> [22.2, 1, 33.241235]
+%%
+%% + returns a List of coordinates
+
+convert(P) -> convert(P, []).
+
+convert([], TEMP) -> TEMP;
+convert([HEAD | TAIL], TEMP) ->
+    case string:to_float(HEAD) of
+      {error, _} ->
+	  convert(TAIL,
+		  TEMP ++ [element(1, string:to_integer(HEAD))]);
+      {Number, _Empty} -> convert(TAIL, TEMP ++ [Number])
     end.
